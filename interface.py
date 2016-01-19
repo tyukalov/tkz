@@ -10,7 +10,7 @@ curs 		= connect_db.cursor()
 ### Валидаторы параметров
 def initImpedanceValidator(func):
     def wrapper(element, **kwargs):
-        if subList(kwargs, ['resist','react','r0','x0']):
+        if subList(kwargs, element.param):
             try:
                 for x in kwargs:
                     kwargs[x]	= float(kwargs[x])
@@ -23,9 +23,8 @@ def initImpedanceValidator(func):
 
 def initSystemValidator(func):
     def wrapper(element, **kwargs):
-        param	= ('highvoltage', 'lowvoltage', 'Skz', 'Ikz', 'reactance')
-        if subList(kwargs, param):
-            for x in param:
+        if subList(kwargs, element.param):
+            for x in element.param:
                 if x in kwargs:
                     try:
                         kwargs[x]	= float(kwargs[x])
@@ -40,12 +39,40 @@ def initSystemValidator(func):
             print 'Unknown argument!'
     return wrapper
         
+def initTransformerValidator(func):
+    def wrapper(element, **kwargs):
+        if subList(element.required, kwargs):
+            try:
+                kwargs['Sn']		= float(kwargs['Sn'])
+                if not('scheme' in kwargs):
+                    kwargs['scheme']= 'DY'
+                if 'Un' in kwargs:
+                    kwargs['Un']	= float(kwargs['Un'])
+                else:
+                    kwargs['Un']	= 400.0
+                if 'Pk' in kwargs:
+                    kwargs['Pk']	= float(kwargs['Pk'])
+                else:
+                    kwargs['Pk']	= 10000.0
+                if 'uk' in kwargs:
+                    kwargs['uk']	= float(kwargs['uk'])
+                else:
+                    kwargs['uk']	= 5.5
+                if 'r0' in kwargs:
+                    kwargs['r0']	= float(kwargs['r0'])
+                if 'x0' in kwargs:
+                    kwargs['x0']	= float(kwargs['x0'])
+                func(element, **kwargs)
+            except:
+                print 'Invalid argument'
+        else:
+            print 'Invalid argument'
+    return wrapper
 
 ### Инициализаторы
 @initImpedanceValidator
 def initImpedance(element, **kwargs):
-    param			= ('resist', 'react', 'r0', 'x0')
-    element.R, element.X, element.R0, element.X0 = [kwargs[x] if x in kwargs else 0 for x in param]
+    element.R, element.X, element.R0, element.X0 = [kwargs[x] if x in kwargs else 0 for x in element.param]
             
 @initSystemValidator
 def initSystem (element, **kwargs):
@@ -59,9 +86,20 @@ def initSystem (element, **kwargs):
     else:
         element.X						= 0
 
+@initTransformerValidator
 def initTransformer (element, **kwargs):
-    pass
-
+    element.R		= kwargs['Pk'] * ((kwargs['Un'] / kwargs['Sn'])**2)
+    element.X		= ((kwargs['Un']**2)/(kwargs['Sn'] * 100)) * sqrt(kwargs['uk']**2 - (100 * kwargs['Pk'] / kwargs['Sn'])**2)
+    if 'r0' in kwargs:
+        element.R0=kwargs['r0']
+    else:
+        element.R0=element.R if kwargs['scheme']=='DY' else 3*element.R
+    if 'x0' in kwargs:
+        element.X0=kwargs['x0']
+    else:
+        element.X0=element.X if kwargs['scheme']=='DY' else 3*element.X
+        
+    
 def initCable (element, **kwargs):
     pass
 

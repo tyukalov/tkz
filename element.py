@@ -36,6 +36,7 @@ class Impedance:
     они не будут.
     """
     type							= 'Impedance'
+    param							= ('resist','react','r0','x0')
     R,X,R0,X0,Z,Z0,fullZ, fullZ0	= 8*[None]
 
     def __init__ (self, **kwargs):
@@ -66,11 +67,12 @@ class System(Impedance):
     Все единицы - собственные (амперы, вольты, омы)
     """
     type		= 'System'
+    param		= ('highvoltage', 'lowvoltage', 'Skz', 'Ikz', 'reactance')
 
 
 ### Класс сопротивления трансформаторов
 class Transformer (Impedance):
-    u"""
+    """
     Класс сопротивления трансформаторов. Все единицы - собственные.
     Параметры:
     Pk - потери короткого замыкания в трансформаторе, Вт;
@@ -80,6 +82,8 @@ class Transformer (Impedance):
     scheme - схема соединения обмоток (YY, DY)
     """
     type		= 'Transformer'
+    param		= ('Sn', 'Un', 'Pk', 'uk', 'scheme', 'r0', 'x0')
+    required	= ('Sn',)
 
 
 ### Класс кабелей
@@ -125,8 +129,5 @@ class Airway (Impedance):
 
 ### -----------------------------------------------------------------------------------------------
 if __name__ == '__main__':
-    print System()
-    print System(reactance='12.3')
-    print System(Ikz='10000')
-    print System(Skz='400')
-    print System(qwe='12')
+    print Transformer(Sn='1000000')
+    print Transformer(Sn='1000000', scheme='YY')
