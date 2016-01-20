@@ -99,6 +99,8 @@ class Cable (Impedance):
     R, X - справочные значения удельных сопротивлений, Ом/м;
     """
     type		= 'Cable'
+    required	= ('material', 'cross_section', 'lenght')
+    param		= ('material', 'cross_section', 'lenght', 'types', 'cores', 'R', 'X', 'r0', 'x0')
 
 
 ### Класс шинопроводов
@@ -129,5 +131,5 @@ class Airway (Impedance):
 
 ### -----------------------------------------------------------------------------------------------
 if __name__ == '__main__':
-    print Transformer(Sn='1000000')
-    print Transformer(Sn='1000000', scheme='YY')
+    print Cable(material='al', cross_section='2.5', lenght='1000')
+    print Cable(material='al', cross_section='2.5', lenght='1000', R='0.009', X='0.0017')
