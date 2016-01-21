@@ -18,6 +18,7 @@ selector							= {'Impedance':initImpedance,
                                        'Transformer':initTransformer,
                                        'Cable':initCable,
                                        'Bus':initBus,
+                                       'Reactor':initReactor,
                                        'Airway':initAirway}
 
 ### Базовый класс электрического сопротивления цепи
@@ -36,6 +37,7 @@ class Impedance:
     они не будут.
     """
     type							= 'Impedance'
+    parent							= 'Impedance'
     R,X,R0,X0,Z,Z0,fullZ, fullZ0	= 8*[None]
 
     def __init__ (self, **kwargs):
@@ -70,61 +72,81 @@ class System(Impedance):
 
 ### Класс сопротивления трансформаторов
 class Transformer (Impedance):
-    """
-    Класс сопротивления трансформаторов. Все единицы - собственные.
-    Параметры:
-    Pk - потери короткого замыкания в трансформаторе, Вт;
-    Sn - номинальная мощность трансформатора, Вт;
-    Un - номинальное напряжение трансформатора, В;
-    uk - напряжение короткого замыкания трансформатора, %;
-    scheme - схема соединения обмоток (YY, DY)
-    """
     type		= 'Transformer'
 
 
 ### Класс кабелей
 class Cable (Impedance):
-    """
-    Класс кабелей.
-    Параметры:
-    lenght - длина, м;
-    cross_section - сечение, мм2;
-    material - материал, (al, cu)
-    types - материал оболочки, (aluminium_shell, plumbum_shell, shell, steel_shell)
-    cores - число жил
-    R, X - справочные значения удельных сопротивлений, Ом/м;
-    """
     type		= 'Cable'
 
 
 ### Класс шинопроводов
 class Bus (Impedance):
-    """
-    Класс шинороводов.
-    Параметры:
-    amperage - расчётный ток, А;
-    R, X, r0, x0 - паспортные удельные сопротивления, Ом/м;
-    lenght - длина, м;
-    """
     type		= 'Bus'
     
 
 
 ### Класс воздушных линий
 class Airway (Impedance):
-    """
-    Класс воздушных линий.
-    Параметры:
-    lenght - длина, м;
-    cross_section - сечение, мм";
-    material - материал, (al, cu);
-    a - расстояние между проводниками, м;
-    r,x,r0,x0 - справочные данные;
-    """
     type		= 'Airway'
 
+### Класс реакторов
+class Reactor (Impedance):
+    type		= 'Reactor'
 
+### Класс электрической сети
+class Network:
+    """
+    Класс описывает радиальную электрическую сеть с одним источником питания.
+    Представляет собой головной элемент head типа Impedance (и дочерних)
+    и список tail, состоящий из элементов типа Network
+    """
+    type		= 'Network'
+
+    def __init__ (self, head, **kwargs):
+        if head.parent == 'Impedance':
+            self.head			= head
+        else:
+            raise InvalidArgumentType
+        if 'name' in kwargs:
+            self.name			= kwargs['name']
+        else:
+            self.name			= 'Unknown'
+        if 'tail' in kwargs:
+            lst					= kwargs['tail']
+            for x in lst:
+                if not(x.type == 'Network'):
+                    raise InvalidArgumentType
+            self.tail			= lst
+        else:
+            self.tail			= []
+
+    def __add__ (self, other):
+        return Network(self.head, tail=[other] + self.tail, name=self.name)
+
+    def getCircuit(self, name):
+        if self.name == name:
+            return [self.head]
+        else:
+            for x in self.tail:
+                var			= x.getCircuit(name)
+                if var:
+                    return [self.head] + var
+        return False
+        
 ### -----------------------------------------------------------------------------------------------
 if __name__ == '__main__':
-    print Bus(lenght='10', amperage='1600')
-    print Bus(R='10', X='10', r0='10', x0='10')
+    a=Network(Impedance(),tail=[Network(Impedance()), Network(Impedance(),tail=[Network(Impedance()), Network(Impedance(),tail=[Network(Impedance(resist='10'), name='tut'), Network(Impedance())])])])
+    b=a.getCircuit('tut')
+    c=0
+    for x in b:
+        c=c+x.R
+    print c
+    # print 'Transformer'
+    # print Bus(lenght='10', amperage='1600')
+    # print Bus(R='10', X='10', r0='10', x0='10')
+    # print 'Reactor'
+    # print Reactor(dP='1000', In='1000', X='0.001')
+    # print Reactor(dP='1000', In='1000', L='10', M='5')
+    # print 'Airway'
+    # print Airway(lenght='1000', material='al', a='1', cross_section='35')
