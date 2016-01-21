@@ -33,9 +33,9 @@ def initSystemValidator(func):
                     except:
                         print 'Type of arguments must be float!'
             if not('highvoltage' in kwargs):
-                kwargs['highvoltage']	= 10000
+                kwargs['highvoltage']	= 10000.0
             if not('lowvoltage' in kwargs):
-                kwargs['lowvoltage']	= 400
+                kwargs['lowvoltage']	= 400.0
             func(element, **kwargs)
         else:
             print 'Unknown argument!'
@@ -85,6 +85,25 @@ def initBusValidator(func):
             print 'Unknown argument'
     return wrapper
 
+def initCableValidator(func):
+    def wrapper(element, **kwargs):
+        required	= ('material', 'cross_section', 'lenght')
+        if subList(required, kwargs):
+            try:
+                kwargs['lenght']							= float(kwargs['lenght'])
+                if not('types' in kwargs): kwargs['types'] 	= 'shell'
+                if not('cores' in kwargs): kwargs['cores'] 	= '3'
+                if 'R' in kwargs: kwargs['R']				= float(kwargs['R'])
+                if 'X' in kwargs: kwargs['X']				= float(kwargs['X'])
+                if 'r0' in kwargs: kwargs['r0']				= float(kwargs['r0'])
+                if 'x0' in kwargs: kwargs['x0']				= float(kwargs['x0'])
+                func(element, **kwargs)
+            except:
+                print 'Invalid argument'
+        else:
+            print 'Invalid argument'
+    return wrapper
+
 ### Инициализаторы
 @initImpedanceValidator
 def initImpedance(element, **kwargs):
@@ -116,8 +135,19 @@ def initTransformer (element, **kwargs):
         element.X0=element.X if kwargs['scheme']=='DY' else 3*element.X
         
     
+@initCableValidator
 def initCable (element, **kwargs):
-    pass
+    param				= ('R','X','r0','x0')
+    if not(subList(param, kwargs)):
+        try:
+            inquiry		= 'select resistance, reactance, zero_resistance, zero_reactance from cable where material="' + kwargs['material'] + '" and type="' + kwargs['types'] + '" and cross_section="' + kwargs['cross_section'] + '" and cores="' + kwargs['cores'] + '"'
+            curs.execute(inquiry)
+            [var]		= curs.fetchall()
+            var			= dict(zip(param,map(lambda x: x / 1000, var)))
+        except:
+            print 'Invalid argument'
+    element.R, element.X, element.R0, element.X0	= [x*kwargs['lenght'] for x in map(lambda x: kwargs[x] if x in kwargs else var[x], param)]
+        
 
 @initBusValidator
 def initBus (element, **kwargs):
