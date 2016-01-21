@@ -10,7 +10,8 @@ curs 		= connect_db.cursor()
 ### Валидаторы параметров
 def initImpedanceValidator(func):
     def wrapper(element, **kwargs):
-        if subList(kwargs, element.param):
+        param							= ('resist','react','r0','x0')
+        if subList(kwargs, param):
             try:
                 for x in kwargs:
                     kwargs[x]	= float(kwargs[x])
@@ -23,8 +24,9 @@ def initImpedanceValidator(func):
 
 def initSystemValidator(func):
     def wrapper(element, **kwargs):
-        if subList(kwargs, element.param):
-            for x in element.param:
+        param		= ('highvoltage', 'lowvoltage', 'Skz', 'Ikz', 'reactance')
+        if subList(kwargs, param):
+            for x in param:
                 if x in kwargs:
                     try:
                         kwargs[x]	= float(kwargs[x])
@@ -41,7 +43,7 @@ def initSystemValidator(func):
         
 def initTransformerValidator(func):
     def wrapper(element, **kwargs):
-        if subList(element.required, kwargs):
+        if 'Sn' in kwargs:
             try:
                 kwargs['Sn']		= float(kwargs['Sn'])
                 if not('scheme' in kwargs):
@@ -67,6 +69,20 @@ def initTransformerValidator(func):
                 print 'Invalid argument'
         else:
             print 'Invalid argument'
+    return wrapper
+
+def initBusValidator(func):
+    def wrapper (element, **kwargs):
+        if (subList(('lenght', 'amperage'), kwargs) or subList(('R', 'X', 'r0', 'x0'), kwargs)):
+            try:
+            	for x in kwargs:
+                    if not(x=='amperage'):
+                        kwargs[x]	= float(kwargs[x])
+                func(element, **kwargs)
+            except:
+                print 'Invalid argument'
+        else:
+            print 'Unknown argument'
     return wrapper
 
 ### Инициализаторы
@@ -103,8 +119,15 @@ def initTransformer (element, **kwargs):
 def initCable (element, **kwargs):
     pass
 
+@initBusValidator
 def initBus (element, **kwargs):
-    pass
+    if subList(('lenght', 'amperage'), kwargs):
+        inquiry		= 'select resistance, reactance, zero_resistance, zero_reactance from bus where amperage="' + kwargs['amperage'] + '"'
+        curs.execute(inquiry)
+        [var]		= curs.fetchall()
+        element.R, element.X, element.R0, element.X0	= [kwargs['lenght']*x for x in var]
+    else:
+        element.R, element.X, element.R0, element.X0	= [kwargs[x] for x in ('R', 'X', 'r0', 'x0')]
 
 def initAirway (element, **kwargs):
     pass
