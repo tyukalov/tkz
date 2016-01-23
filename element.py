@@ -42,13 +42,10 @@ class Impedance:
 
     def __init__ (self, **kwargs):
         selector[self.type](self, **kwargs)
-        try:
-            self.fullZ0	= complex((2 * self.R + self.R0), (2 * self.X + self.X0))
-            self.Z0		= abs(self.fullZ0)
-            self.fullZ	= complex(self.R, self.X)
-            self.Z		= abs(self.fullZ)
-        except:
-            print 'Initialize error!'
+        self.fullZ0	= complex((2 * self.R + self.R0), (2 * self.X + self.X0))
+        self.Z0		= abs(self.fullZ0)
+        self.fullZ	= complex(self.R, self.X)
+        self.Z		= abs(self.fullZ)
         
     def __add__ (self, other):
         if self.fullZ and self.fullZ0 and other.fullZ and other.fullZ0:

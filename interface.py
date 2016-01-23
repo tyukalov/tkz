@@ -29,11 +29,11 @@ def initImpedanceValidator(func):
             try:
                 for x in kwargs:
                     kwargs[x]	= float(kwargs[x])
-                func(element, **kwargs)
             except:
-                print 'Type of arguments must be float!'
+                raise InvalidArgumentType
+            func(element, **kwargs)
         else:
-            print 'Unknown argument!'
+            raise InvalidArgument
     return wrapper
 
 def initSystemValidator(func):
@@ -45,14 +45,14 @@ def initSystemValidator(func):
                     try:
                         kwargs[x]	= float(kwargs[x])
                     except:
-                        print 'Type of arguments must be float!'
+                        raise InvalidArgumentType
             if not('highvoltage' in kwargs):
                 kwargs['highvoltage']	= 10000.0
             if not('lowvoltage' in kwargs):
                 kwargs['lowvoltage']	= 400.0
             func(element, **kwargs)
         else:
-            print 'Unknown argument!'
+            raise InvalidArgument
     return wrapper
         
 def initTransformerValidator(func):
@@ -87,11 +87,11 @@ def initTransformerValidator(func):
                     kwargs['r0']	= float(kwargs['r0'])
                 if 'x0' in kwargs:
                     kwargs['x0']	= float(kwargs['x0'])
-                func(element, **kwargs)
             except:
-                print 'Invalid argument'
+                raise InvalidArgumentType
+            func(element, **kwargs)
         else:
-            print 'Invalid argument'
+            raise InvalidArgument
     return wrapper
 
 def initBusValidator(func):
@@ -107,11 +107,11 @@ def initBusValidator(func):
             	for x in kwargs:
                     if not(x=='amperage'):
                         kwargs[x]	= float(kwargs[x])
-                func(element, **kwargs)
             except:
-                print 'Invalid argument'
+                raise InvalidArgumentType
+            func(element, **kwargs)
         else:
-            print 'Unknown argument'
+            raise InvalidArgument
     return wrapper
 
 def initCableValidator(func):
@@ -135,11 +135,11 @@ def initCableValidator(func):
                 if 'X' in kwargs: kwargs['X']				= float(kwargs['X'])
                 if 'r0' in kwargs: kwargs['r0']				= float(kwargs['r0'])
                 if 'x0' in kwargs: kwargs['x0']				= float(kwargs['x0'])
-                func(element, **kwargs)
             except:
-                print 'Invalid argument'
+                raise InvalidArgumentType
+            func(element, **kwargs)
         else:
-            print 'Invalid argument'
+            raise InvalidArgument
     return wrapper
 
 def initAirwayValidator(func):
@@ -160,11 +160,11 @@ def initAirwayValidator(func):
             	for x in ('lenght','cross_section','a','R','X','r0','x0'):
                     if x in kwargs:
                         kwargs[x]		= float(kwargs[x])
-                func(element, **kwargs)
             except:
-                print 'Invalid argument'
+                raise InvalidArgumentType
+            func(element, **kwargs)
         else:
-            print 'Invalid argument'
+            raise InvalidArgument
     return wrapper
 
 def initReactorValidator(func):
@@ -181,11 +181,11 @@ def initReactorValidator(func):
             try:
                 for x in kwargs:
                     kwargs[x]	= float(kwargs[x])
-                func(element, **kwargs)
             except:
-                print 'Invalid argument'
+                raise InvalidArgumentType
+            func(element, **kwargs)
         else:
-            print 'Unknown argument'
+            raise InvalidArgument
     return wrapper
 
 
@@ -197,40 +197,47 @@ def initImpedance(element, **kwargs):
 @initSystemValidator
 def initSystem (element, **kwargs):
     element.R, element.R0, element.X0	= 0, 0, 0
-    if 'reactance' in kwargs:
-        element.X						= kwargs['reactance']
-    elif 'Skz' in kwargs: 
-        element.X						= (kwargs['lowvoltage'] ** 2) / kwargs['Skz']
-    elif 'Ikz' in kwargs:
-        element.X						= (kwargs['lowvoltage'] ** 2) / (sqrt(3) * kwargs['Ikz'] * kwargs['highvoltage'])
-    else:
-        element.X						= 0
+    try:
+        if 'reactance' in kwargs:
+            element.X						= kwargs['reactance']
+        elif 'Skz' in kwargs: 
+            element.X						= (kwargs['lowvoltage'] ** 2) / kwargs['Skz']
+        elif 'Ikz' in kwargs:
+            element.X						= (kwargs['lowvoltage'] ** 2) / (sqrt(3) * kwargs['Ikz'] * kwargs['highvoltage'])
+        else:
+            element.X						= 0
+    except:
+        raise InvalidArgument
 
 @initTransformerValidator
 def initTransformer (element, **kwargs):
-    element.R		= kwargs['Pk'] * ((kwargs['Un'] / kwargs['Sn'])**2)
-    element.X		= ((kwargs['Un']**2)/(kwargs['Sn'] * 100)) * sqrt(kwargs['uk']**2 - (100 * kwargs['Pk'] / kwargs['Sn'])**2)
-    if 'r0' in kwargs:
-        element.R0=kwargs['r0']
-    else:
-        element.R0=element.R if kwargs['scheme']=='DY' else 3*element.R
-    if 'x0' in kwargs:
-        element.X0=kwargs['x0']
-    else:
-        element.X0=element.X if kwargs['scheme']=='DY' else 3*element.X
+    try:
+        element.R		= kwargs['Pk'] * ((kwargs['Un'] / kwargs['Sn'])**2)
+        element.X		= ((kwargs['Un']**2)/(kwargs['Sn'] * 100)) * sqrt(kwargs['uk']**2 - (100 * kwargs['Pk'] / kwargs['Sn'])**2)
+        if 'r0' in kwargs:
+            element.R0=kwargs['r0']
+        else:
+            element.R0=element.R if kwargs['scheme']=='DY' else 3*element.R
+        if 'x0' in kwargs:
+            element.X0=kwargs['x0']
+        else:
+            element.X0=element.X if kwargs['scheme']=='DY' else 3*element.X
+    except:
+        raise InvalidArgument
         
     
 @initCableValidator
 def initCable (element, **kwargs):
     param				= ('R','X','r0','x0')
     if not(subList(param, kwargs)):
-        try:
-            inquiry		= 'select resistance, reactance, zero_resistance, zero_reactance from cable where material="' + kwargs['material'] + '" and type="' + kwargs['types'] + '" and cross_section="' + kwargs['cross_section'] + '" and cores="' + kwargs['cores'] + '"'
-            curs.execute(inquiry)
-            [var]		= curs.fetchall()
-            var			= dict(zip(param,map(lambda x: x / 1000, var)))
-        except:
-            print 'Invalid argument'
+        inquiry		= 'select resistance, reactance, zero_resistance, zero_reactance from cable where material="' + kwargs['material'] + '" and type="' + kwargs['types'] + '" and cross_section="' + kwargs['cross_section'] + '" and cores="' + kwargs['cores'] + '"'
+        curs.execute(inquiry)
+        var		= curs.fetchall()
+        if var:
+            [var]	= var
+        else:
+            raise DBError
+        var			= dict(zip(param,map(lambda x: x / 1000, var)))
     element.R, element.X, element.R0, element.X0	= [x*kwargs['lenght'] for x in map(lambda x: kwargs[x] if x in kwargs else var[x], param)]
         
 
@@ -239,17 +246,22 @@ def initBus (element, **kwargs):
     if subList(('lenght', 'amperage'), kwargs):
         inquiry		= 'select resistance, reactance, zero_resistance, zero_reactance from bus where amperage="' + kwargs['amperage'] + '"'
         curs.execute(inquiry)
-        [var]		= curs.fetchall()
+        var		= curs.fetchall()
+        if var:
+            [var]	= var
+        else:
+            raise DBError
         element.R, element.X, element.R0, element.X0	= [kwargs['lenght']*x for x in var]
     else:
         element.R, element.X, element.R0, element.X0	= [kwargs[x] for x in ('R', 'X', 'r0', 'x0')]
 
-def initAirway (element, **kwargs):
-    pass
 
 @initReactorValidator
 def initReactor (element, **kwargs):
-    element.R					= kwargs['dP'] / (kwargs['In'] ** 2)
+    try:
+        element.R					= kwargs['dP'] / (kwargs['In'] ** 2)
+    except:
+        raise InvalidArgument
     if 'X' in kwargs:
         element.X				= kwargs['X']
     else:
@@ -259,6 +271,8 @@ def initReactor (element, **kwargs):
     
 @initAirwayValidator
 def initAirway (element, **kwargs):
+    if kwargs['cross_section'] == 0:
+        raise InvalidArgument
     if 'R' in kwargs:
         R					= kwargs['R']
     else:
