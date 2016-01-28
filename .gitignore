@@ -1,2 +1,4 @@
 *.pyc
 *~
+extend.py
+test.xml

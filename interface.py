@@ -1,11 +1,29 @@
 # -*- coding: utf-8 -*-
+import xml.etree.ElementTree as ET
+from element import *
 from math import sqrt, log10, pi
 import sqlite3
-from service import subList
 ### Инициализация базы данных
 
 connect_db	= sqlite3.connect('reactance.dat')
 curs 		= connect_db.cursor()
+
+def list_cmp (lst, ptrn):
+    """
+    Функция сравнивает списки lst и ptrn, возвращая список элементов
+    списка lst, которых нет в ptrn
+    """
+    result		= []
+    for x in lst:
+        if not(x in ptrn):
+            result.append(x)
+    return result
+
+def subList(lst, ptrn):
+    for x in lst:
+        if not(x in ptrn):
+            return False
+    return True
 
 ### Некоторые параметры
 ### Соотношения Х0/Х1 для воздушных линий (РД 153-34.0-20.527-98 Табл. 4.2)
@@ -290,3 +308,52 @@ def initAirway (element, **kwargs):
     else:
         X0					= airwayX0X1[kwargs['types']] * X
     element.R, element.X, element.R0, element.X0	= [kwargs['lenght'] * x for x in (R,X,R0,X0)]
+
+    
+
+### Интерфейс с xml-представлением электрической сети
+
+tags	= {'network':Network, 'impedance':Impedance, 'system':System, 'transformer':Transformer, 'cable':Cable, 'bus':Bus, 'reactor':Reactor}
+
+
+
+def getcircuit (filename):
+    tree	= ET.parse(filename)
+    return	tree.getroot()	
+
+# Валидатор тэгов
+def tag_validate (var):
+    var0			= var.tag
+    if not(var0 in tags):
+        result		= False
+    else:
+        result		= True
+    for x in var:
+        result		= result and tag_validate(x)
+    return result
+
+# Инициализатор класса Network
+def initNetwork(filename):
+    root		= getcircuit(filename)
+    if tag_validate(root):
+        [root]	= root
+        return initNetworkEx(root)
+    else:
+        raise NetworkError
+
+def initNetworkEx (root):
+    elem	= root.tag
+    param	= root.attrib
+    if 'name' in param:
+        mname	= param.pop('name')
+    else:
+        mname	= 'Unknown'
+    if list(root):
+        return Network(tags[elem](**param), name=mname, tail=[initNetworkEx(x) for x in root])
+    else:
+        return Network(tags[elem](**param), name=mname)
+
+if __name__ == '__main__':
+    a=initNetwork('test.xml')
+    print a
+    print a.getCircuit('tam')

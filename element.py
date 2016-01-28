@@ -147,3 +147,6 @@ if __name__ == '__main__':
     # print Reactor(dP='1000', In='1000', L='10', M='5')
     # print 'Airway'
     # print Airway(lenght='1000', material='al', a='1', cross_section='35')
+    a=initNetwork('test.xml')
+    print a
+    print a.getCircuit('tam')
