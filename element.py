@@ -48,12 +48,12 @@ class Impedance:
         self.Z		= abs(self.fullZ)
         
     def __add__ (self, other):
-        if self.fullZ and self.fullZ0 and other.fullZ and other.fullZ0:
+        if self.fullZ==None or self.fullZ0==None or other.fullZ==None or other.fullZ0==None:
+            print 'Uninizialized instance!'
+        else:
             var			= self.fullZ + other.fullZ
             var0		= self.fullZ0 + other.fullZ0
-            return Impedance(var.real, var.imag, var0.real, var0.imag)
-        else:
-            print 'Uninizialized instance!'
+            return Impedance(resist=var.real, react=var.imag, r0=var0.real, x0=var0.imag)
 
     def __str__ (self):
         return '<Impedance: R = %s, X = %s, Z = %s, Z0 = %s >'%(self.R, self.X, self.Z, self.Z0)
@@ -147,6 +147,3 @@ if __name__ == '__main__':
     # print Reactor(dP='1000', In='1000', L='10', M='5')
     # print 'Airway'
     # print Airway(lenght='1000', material='al', a='1', cross_section='35')
-    a=initNetwork('test.xml')
-    print a
-    print a.getCircuit('tam')
