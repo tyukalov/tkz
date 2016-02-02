@@ -45,12 +45,27 @@ def ikzBeginPeriod(**kwargs):
     network - объект класса Network;
     mode    - режим, (onephase, twophase, threephase);
     point   - точка КЗ;
+    volume  - уровень (min,max)
     '''
     circuit	= kwargs['network'].getCircuit(kwargs['point'])
+    Z				= modeSelector[kwargs['mode']](circuit)
     if kwargs['voltage'] < 1000:
-        return float(kwargs['voltage']) / (sqrt(3) * abs(modeSelector[kwargs['mode']](circuit)))
+        ### РД 153-34.0-20.527-98
+        if kwargs['volume']=='max':
+            return  float(kwargs['voltage']) / (sqrt(3) * abs(Z))
+        else:
+            var			= Impedance()
+            for x in circuit:
+                var		+= x
+            i0			= kwargs['voltage'] / (sqrt(3) * abs(var.Z))
+            aZ			= abs(Z)
+            Ks			= 0.6 - 2.5 * aZ + 0.114 * sqrt(1000 * aZ) - 0.13 * ((1000 * aZ)**(1 / float(3)))
+            Rd			= Impedance(resist=sqrt(abs((((kwargs['voltage'] / (i0 * Ks))**2)/3) - (var.X)**2)) - var.R)
+            circuit_d	= [Rd] + circuit
+            return kwargs['voltage'] / (sqrt(3) * abs(modeSelector[kwargs['mode']](circuit_d)))
     else:
-        pass # ДОРАБОТАТЬ для высоких напряжений
+        c=1.1 if kwargs['volume']=='max' else 1.0
+        return c * kwargs['voltage'] / (sqrt(3) * Z.imag)
 
 ### ==============================================================================
 ### ================================ End tkz.py ==================================
@@ -58,6 +73,16 @@ def ikzBeginPeriod(**kwargs):
 
 if __name__ == '__main__':
     a=initNetwork('test.xml')
-    print ikzBeginPeriod(voltage=400, mode='threephase', point='tam', network=a)
-    print ikzBeginPeriod(voltage=400, mode='twophase', point='tam', network=a)
-    print ikzBeginPeriod(voltage=400, mode='onephase', point='tam', network=a)
+    # print ikzBeginPeriod(voltage=400, volume='max', mode='threephase', point='tam', network=a)
+    # print ikzBeginPeriod(voltage=400, volume='max', mode='twophase', point='tam', network=a)
+    # print ikzBeginPeriod(voltage=400, volume='max', mode='onephase', point='tam', network=a)
+    # print ikzBeginPeriod(voltage=400, volume='min', mode='threephase', point='tam', network=a)
+    # print ikzBeginPeriod(voltage=400, volume='min', mode='twophase', point='tam', network=a)
+    # print ikzBeginPeriod(voltage=400, volume='min', mode='onephase', point='tam', network=a)
+
+    print ikzBeginPeriod(voltage=10000, volume='max', mode='threephase', point='tam', network=a)
+    print ikzBeginPeriod(voltage=10000, volume='max', mode='twophase', point='tam', network=a)
+    print ikzBeginPeriod(voltage=10000, volume='max', mode='onephase', point='tam', network=a)
+    print ikzBeginPeriod(voltage=10000, volume='min', mode='threephase', point='tam', network=a)
+    print ikzBeginPeriod(voltage=10000, volume='min', mode='twophase', point='tam', network=a)
+    print ikzBeginPeriod(voltage=10000, volume='min', mode='onephase', point='tam', network=a)
