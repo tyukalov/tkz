@@ -13,6 +13,12 @@ def subList(lst, ptrn):
             return False
     return True
 
+### Классы исключений
+class InvalidArgument(Exception):
+    pass
+class DBError(Exception):
+    pass
+
 ### Некоторые параметры
 ### Соотношения Х0/Х1 для воздушных линий (РД 153-34.0-20.527-98 Табл. 4.2)
 airwayX0X1		= {
@@ -36,10 +42,10 @@ def initImpedanceValidator(func):
                 for x in kwargs:
                     kwargs[x]	= float(kwargs[x])
             except:
-                raise InvalidArgumentType
+                raise InvalidArgument("Parameter element 'impedance' must be a real number")
             func(element, **kwargs)
         else:
-            raise InvalidArgument
+            raise InvalidArgument("Invalid argument from 'impedance' element")
     return wrapper
 
 def initSystemValidator(func):
@@ -51,14 +57,14 @@ def initSystemValidator(func):
                     try:
                         kwargs[x]	= float(kwargs[x])
                     except:
-                        raise InvalidArgumentType
+                        raise InvalidArgument("Parameter element 'system' must be a real number")
             if not('highvoltage' in kwargs):
                 kwargs['highvoltage']	= 10000.0
             if not('lowvoltage' in kwargs):
                 kwargs['lowvoltage']	= 400.0
             func(element, **kwargs)
         else:
-            raise InvalidArgument
+            raise InvalidArgument("Invalid argument from 'system' element")
     return wrapper
         
 def initTransformerValidator(func):
@@ -94,10 +100,10 @@ def initTransformerValidator(func):
                 if 'x0' in kwargs:
                     kwargs['x0']	= float(kwargs['x0'])
             except:
-                raise InvalidArgumentType
+                raise InvalidArgument("Parameter element 'transformer' must be a real number")
             func(element, **kwargs)
         else:
-            raise InvalidArgument
+            raise InvalidArgument("Invalid argument from 'transformer' element")
     return wrapper
 
 def initBusValidator(func):
@@ -114,10 +120,10 @@ def initBusValidator(func):
                     if not(x=='amperage'):
                         kwargs[x]	= float(kwargs[x])
             except:
-                raise InvalidArgumentType
+                raise InvalidArgument("Parameter element 'bus' must be a real number")
             func(element, **kwargs)
         else:
-            raise InvalidArgument
+            raise InvalidArgument("Invalid argument from 'bus' element")
     return wrapper
 
 def initCableValidator(func):
@@ -142,10 +148,10 @@ def initCableValidator(func):
                 if 'r0' in kwargs: kwargs['r0']				= float(kwargs['r0'])
                 if 'x0' in kwargs: kwargs['x0']				= float(kwargs['x0'])
             except:
-                raise InvalidArgumentType
+                raise InvalidArgument("Parameter element 'cable' must be a real number. Or invalid parameters 'types' or 'cores'")
             func(element, **kwargs)
         else:
-            raise InvalidArgument
+            raise InvalidArgument("Invalid argument from 'cable' element")
     return wrapper
 
 def initAirwayValidator(func):
@@ -167,10 +173,10 @@ def initAirwayValidator(func):
                     if x in kwargs:
                         kwargs[x]		= float(kwargs[x])
             except:
-                raise InvalidArgumentType
+                raise InvalidArgument("Parameter element 'airway' must be a real number")
             func(element, **kwargs)
         else:
-            raise InvalidArgument
+            raise InvalidArgument("Invalid argument from 'airway' element")
     return wrapper
 
 def initReactorValidator(func):
@@ -188,10 +194,10 @@ def initReactorValidator(func):
                 for x in kwargs:
                     kwargs[x]	= float(kwargs[x])
             except:
-                raise InvalidArgumentType
+                raise InvalidArgument("Parameter element 'reactor' must be a real number")
             func(element, **kwargs)
         else:
-            raise InvalidArgument
+            raise InvalidArgument("Invalid argument from 'reactor' element")
     return wrapper
 
 
@@ -213,7 +219,7 @@ def initSystem (element, **kwargs):
         else:
             element.X						= 0
     except:
-        raise InvalidArgument
+        raise InvalidArgument("Invalid parameters for the element 'system'")
 
 @initTransformerValidator
 def initTransformer (element, **kwargs):
@@ -229,9 +235,8 @@ def initTransformer (element, **kwargs):
         else:
             element.X0=element.X if kwargs['scheme']=='DY' else 3*element.X
     except:
-        raise InvalidArgument
+        raise InvalidArgument("Invalid parameters for the element 'transformer'")
         
-    
 @initCableValidator
 def initCable (element, **kwargs):
     param				= ('R','X','r0','x0')
@@ -242,7 +247,7 @@ def initCable (element, **kwargs):
         if var:
             [var]	= var
         else:
-            raise DBError
+            raise DBError("Database error in 'cable'")
         var			= dict(zip(param,map(lambda x: x / 1000, var)))
     element.R, element.X, element.R0, element.X0	= [x*kwargs['lenght'] for x in map(lambda x: kwargs[x] if x in kwargs else var[x], param)]
         
@@ -256,7 +261,7 @@ def initBus (element, **kwargs):
         if var:
             [var]	= var
         else:
-            raise DBError
+            raise DBError("Database error in 'bus'")
         element.R, element.X, element.R0, element.X0	= [kwargs['lenght']*x for x in var]
     else:
         element.R, element.X, element.R0, element.X0	= [kwargs[x] for x in ('R', 'X', 'r0', 'x0')]
@@ -267,7 +272,7 @@ def initReactor (element, **kwargs):
     try:
         element.R					= kwargs['dP'] / (kwargs['In'] ** 2)
     except:
-        raise InvalidArgument
+        raise InvalidArgument("Invalid parameters for the element 'reactor'")
     if 'X' in kwargs:
         element.X				= kwargs['X']
     else:
@@ -278,7 +283,7 @@ def initReactor (element, **kwargs):
 @initAirwayValidator
 def initAirway (element, **kwargs):
     if kwargs['cross_section'] == 0:
-        raise InvalidArgument
+        raise InvalidArgument("Requires 'cross_section' for 'airway' element")
     if 'R' in kwargs:
         R					= kwargs['R']
     else:

@@ -72,17 +72,22 @@ def ikzBeginPeriod(**kwargs):
 ### ==============================================================================
 
 if __name__ == '__main__':
-    a=initNetwork('test.xml')
-    # print ikzBeginPeriod(voltage=400, volume='max', mode='threephase', point='tam', network=a)
-    # print ikzBeginPeriod(voltage=400, volume='max', mode='twophase', point='tam', network=a)
-    # print ikzBeginPeriod(voltage=400, volume='max', mode='onephase', point='tam', network=a)
-    # print ikzBeginPeriod(voltage=400, volume='min', mode='threephase', point='tam', network=a)
-    # print ikzBeginPeriod(voltage=400, volume='min', mode='twophase', point='tam', network=a)
-    # print ikzBeginPeriod(voltage=400, volume='min', mode='onephase', point='tam', network=a)
+    try:
+        a=initNetwork('test.xml')
+        # print ikzBeginPeriod(voltage=400, volume='max', mode='threephase', point='tam', network=a)
+        # print ikzBeginPeriod(voltage=400, volume='max', mode='twophase', point='tam', network=a)
+        # print ikzBeginPeriod(voltage=400, volume='max', mode='onephase', point='tam', network=a)
+        # print ikzBeginPeriod(voltage=400, volume='min', mode='threephase', point='tam', network=a)
+        # print ikzBeginPeriod(voltage=400, volume='min', mode='twophase', point='tam', network=a)
+        # print ikzBeginPeriod(voltage=400, volume='min', mode='onephase', point='tam', network=a)
 
-    print ikzBeginPeriod(voltage=10000, volume='max', mode='threephase', point='tam', network=a)
-    print ikzBeginPeriod(voltage=10000, volume='max', mode='twophase', point='tam', network=a)
-    print ikzBeginPeriod(voltage=10000, volume='max', mode='onephase', point='tam', network=a)
-    print ikzBeginPeriod(voltage=10000, volume='min', mode='threephase', point='tam', network=a)
-    print ikzBeginPeriod(voltage=10000, volume='min', mode='twophase', point='tam', network=a)
-    print ikzBeginPeriod(voltage=10000, volume='min', mode='onephase', point='tam', network=a)
+        print ikzBeginPeriod(voltage=10000, volume='max', mode='threephase', point='tam', network=a)
+        print ikzBeginPeriod(voltage=10000, volume='max', mode='twophase', point='tam', network=a)
+        print ikzBeginPeriod(voltage=10000, volume='max', mode='onephase', point='tam', network=a)
+        print ikzBeginPeriod(voltage=10000, volume='min', mode='threephase', point='tam', network=a)
+        print ikzBeginPeriod(voltage=10000, volume='min', mode='twophase', point='tam', network=a)
+        print ikzBeginPeriod(voltage=10000, volume='min', mode='onephase', point='tam', network=a)
+    except InvalidArgument as X:
+        print(X)
+    except DBError as X:
+        print X
