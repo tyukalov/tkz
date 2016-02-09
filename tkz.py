@@ -19,20 +19,11 @@ from math import sqrt
 
 # Служебные функции и данные
 def onePhase(circuit):
-    result		= Impedance()
-    for x in circuit:
-        result += x
-    return result.fullZ0 / 3
+    return circuit.fullZ0 / 3
 def twoPhase(circuit):
-    result		= Impedance()
-    for x in circuit:
-        result += x
-    return (2 / sqrt(3)) * result.fullZ
+    return (2 / sqrt(3)) * circuit.fullZ
 def threePhase(circuit):
-    result		= Impedance()
-    for x in circuit:
-        result += x
-    return  result.fullZ
+    return  circuit.fullZ
 modeSelector	= {'onephase':onePhase,
                    'twophase':twoPhase,
                    'threephase':threePhase}
@@ -47,22 +38,19 @@ def ikzBeginPeriod(**kwargs):
     point   - точка КЗ;
     volume  - уровень (min,max)
     '''
-    circuit	= kwargs['network'].getCircuit(kwargs['point'])
+    circuit	= kwargs['network'].getResistance(kwargs['point'])
     Z				= modeSelector[kwargs['mode']](circuit)
     if kwargs['voltage'] < 1000:
         ### РД 153-34.0-20.527-98
         if kwargs['volume']=='max':
-            return  float(kwargs['voltage']) / (sqrt(3) * abs(Z))
+            return  float(kwargs['voltage']) / (sqrt(3) * Z.Z)
         else:
-            var			= Impedance()
-            for x in circuit:
-                var		+= x
-            i0			= kwargs['voltage'] / (sqrt(3) * abs(var.Z))
-            aZ			= abs(Z)
+            i0			= kwargs['voltage'] / (sqrt(3) * Z.Z)
+            aZ			= Z.Z
             Ks			= 0.6 - 2.5 * aZ + 0.114 * sqrt(1000 * aZ) - 0.13 * ((1000 * aZ)**(1 / float(3)))
             Rd			= Impedance(resist=sqrt(abs((((kwargs['voltage'] / (i0 * Ks))**2)/3) - (var.X)**2)) - var.R)
-            circuit_d	= [Rd] + circuit
-            return kwargs['voltage'] / (sqrt(3) * abs(modeSelector[kwargs['mode']](circuit_d)))
+            circuit_d	= modeSelector[kwargs['mode']](Rd + circuit)
+            return kwargs['voltage'] / (sqrt(3) * circuit_d.Z)
     else:
         c=1.1 if kwargs['volume']=='max' else 1.0
         return c * kwargs['voltage'] / (sqrt(3) * Z.imag)

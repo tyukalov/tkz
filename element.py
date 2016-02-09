@@ -51,9 +51,11 @@ class Impedance:
         if self.fullZ==None or self.fullZ0==None or other.fullZ==None or other.fullZ0==None:
             print 'Uninizialized instance!'
         else:
-            var			= self.fullZ + other.fullZ
-            var0		= self.fullZ0 + other.fullZ0
-            return Impedance(resist=var.real, react=var.imag, r0=var0.real, x0=var0.imag)
+            R		= self.R + other.R
+            X		= self.X + other.X
+            R0		= self.R0 + other.R0
+            X0		= self.X0 + other.X0
+            return Impedance(resist=R, react=X, r0=R0, x0=X0)
 
     def __str__ (self):
         return '<Impedance: R = %s, X = %s, Z = %s, Z0 = %s >'%(self.R, self.X, self.Z, self.Z0)
@@ -130,15 +132,21 @@ class Network:
                 if var:
                     return [self.head] + var
         return False
+    
+    def getResistance(self,point):
+        circuit			= self.getCircuit(point)
+        if circuit:
+            result		= Impedance()
+            for x in circuit:
+                result		+= x
+            return result
+        else:
+            return False
         
 ### -----------------------------------------------------------------------------------------------
 if __name__ == '__main__':
     a=Network(Impedance(),tail=[Network(Impedance()), Network(Impedance(),tail=[Network(Impedance()), Network(Impedance(),tail=[Network(Impedance(resist='10'), name='tut'), Network(Impedance())])])])
-    b=a.getCircuit('tut')
-    c=0
-    for x in b:
-        c=c+x.R
-    print c
+    print a.getResistance('tut')
     # print 'Transformer'
     # print Bus(lenght='10', amperage='1600')
     # print Bus(R='10', X='10', r0='10', x0='10')

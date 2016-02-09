@@ -15,10 +15,11 @@
 
 import xml.etree.ElementTree as ET
 from element import *
+from errors import *
 
 ### Интерфейс с xml-представлением электрической сети
 
-tags	= {'network':Network, 'impedance':Impedance, 'system':System, 'transformer':Transformer, 'cable':Cable, 'bus':Bus, 'reactor':Reactor}
+tags	= {'network':Network, 'impedance':Impedance, 'system':System, 'transformer':Transformer, 'cable':Cable, 'bus':Bus, 'reactor':Reactor, 'airway':Airway}
 
 
 
