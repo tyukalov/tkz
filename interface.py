@@ -136,7 +136,8 @@ def initCableValidator(func):
         if subList(required, kwargs):
             try:
                 kwargs['lenght']							= float(kwargs['lenght'])
-                if not('types' in kwargs): kwargs['types'] 	= 'shell'
+                if not('types' in kwargs):
+                    kwargs['types'] 	= 'shell' if kwargs['material']=='al' else 'steel_shell'
                 if not('cores' in kwargs): kwargs['cores'] 	= '3'
                 if 'R' in kwargs: kwargs['R']				= float(kwargs['R'])
                 if 'X' in kwargs: kwargs['X']				= float(kwargs['X'])
