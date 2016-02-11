@@ -9,6 +9,13 @@
 ### ========================================================================================
 
 from interface import *
+#from errors import *
+try:
+    from numpy import linalg
+except:
+    LNLG_FLAG	= False
+else:
+    LNLG_FLAG	= True
 
 
 
@@ -106,7 +113,7 @@ class Network:
         if head.parent == 'Impedance':
             self.head			= head
         else:
-            raise InvalidArgumentType
+            raise InvalidArgument
         if 'name' in kwargs:
             self.name			= kwargs['name']
         else:
@@ -115,7 +122,7 @@ class Network:
             lst					= kwargs['tail']
             for x in lst:
                 if not(x.type == 'Network'):
-                    raise InvalidArgumentType
+                    raise InvalidArgument
             self.tail			= lst
         else:
             self.tail			= []
@@ -143,6 +150,48 @@ class Network:
         else:
             return False
         
+
+class Branch:
+    '''
+    Класс ветви электрической сети.
+    graph		- последовательность номеров узлов. Определяет направление расчётного тока;
+    EMF			- электродвижущая сила;
+    resistance	- электрическое сопротивление.
+    Единицы измерения не указаны, поскольку зависят от характера сети
+    '''
+    type						= 'branch'
+    
+    def __init__(self, name, graph, resistance=0, EMF=0):
+        if len(graph):
+            self.graph			= tuple(graph)
+        else:
+            raise InvalidArgument("In 'branch' init. Invalid argument 'graph'")
+        try:
+            self.resistance		= float(resistance)
+            self.EMF			= float(EMF)
+        except:
+            raise InvalidArgument('branch', mode='FLOATERROR')
+        self.name				= name
+
+    def getSign (self, node):
+        if node in self.graph:
+            return (-1) ** self.graph.index(node) * (-1)	# 1 если "хвост" и -1 если "голова"
+        else:
+            return 0
+        
+class General:
+    type						= 'general'
+    def __init__ (self, *args):
+        self.network			= dict(zip(range(len(args))), args)
+        var					= ()
+        for x in args:
+            var				+= x.graph
+        nodes				= ()
+        for x in var:
+            if not(x in nodes):
+                nodes		+= (x,)
+        self.nodes			= nodes
+### ================================= End element.py ========================================
 ### -----------------------------------------------------------------------------------------------
 if __name__ == '__main__':
     a=Network(Impedance(),tail=[Network(Impedance()), Network(Impedance(),tail=[Network(Impedance()), Network(Impedance(),tail=[Network(Impedance(resist='10'), name='tut'), Network(Impedance())])])])
