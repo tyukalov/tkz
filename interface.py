@@ -10,7 +10,7 @@ curs 		= connect_db.cursor()
 
 def subList(lst, ptrn):
     for x in lst:
-        if not(x in ptrn):
+        if x not in ptrn:
             return False
     return True
 
@@ -53,9 +53,9 @@ def initSystemValidator(func):
                         kwargs[x]	= float(kwargs[x])
                     except:
                         raise InvalidArgument('system', mode='FLOATERROR')
-            if not('highvoltage' in kwargs):
+            if 'highvoltage' not in kwargs:
                 kwargs['highvoltage']	= 10000.0
-            if not('lowvoltage' in kwargs):
+            if 'lowvoltage' not in kwargs:
                 kwargs['lowvoltage']	= 400.0
             func(element, **kwargs)
         else:
@@ -76,7 +76,7 @@ def initTransformerValidator(func):
         if 'Sn' in kwargs:
             try:
                 kwargs['Sn']		= float(kwargs['Sn'])
-                if not('scheme' in kwargs):
+                if 'scheme' not in kwargs:
                     kwargs['scheme']= 'DY'
                 if 'Un' in kwargs:
                     kwargs['Un']	= float(kwargs['Un'])
@@ -136,9 +136,9 @@ def initCableValidator(func):
         if subList(required, kwargs):
             try:
                 kwargs['lenght']							= float(kwargs['lenght'])
-                if not('types' in kwargs):
+                if 'types' not in kwargs:
                     kwargs['types'] 	= 'shell' if kwargs['material']=='al' else 'steel_shell'
-                if not('cores' in kwargs): kwargs['cores'] 	= '3'
+                if 'cores' not in kwargs: kwargs['cores'] 	= '3'
                 if 'R' in kwargs: kwargs['R']				= float(kwargs['R'])
                 if 'X' in kwargs: kwargs['X']				= float(kwargs['X'])
                 if 'r0' in kwargs: kwargs['r0']				= float(kwargs['r0'])
@@ -162,7 +162,7 @@ def initAirwayValidator(func):
     """
     def wrapper (element, **kwargs):
         if ('lenght' in kwargs) and (('material' in kwargs) or subList(('R','X','r0','x0'), kwargs)) and (('X' in kwargs) or ('a' in kwargs)):
-            if not('types' in kwargs):
+            if 'types' not in kwargs:
                 kwargs['types']			= 'TCWR'
             try:
             	for x in ('lenght','cross_section','a','R','X','r0','x0'):
@@ -278,7 +278,7 @@ def initReactor (element, **kwargs):
     
 @initAirwayValidator
 def initAirway (element, **kwargs):
-    if not('cross_section' in kwargs):
+    if 'cross_section' not in kwargs:
         raise InvalidArgument("Requires 'cross_section' for 'airway' element")
     if 'R' in kwargs:
         R					= kwargs['R']

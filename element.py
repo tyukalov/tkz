@@ -161,7 +161,7 @@ class Branch:
     '''
     type						= 'branch'
     
-    def __init__(self, name, graph, resistance=0, EMF=0):
+    def __init__(self, ID, graph, resistance=0, EMF=0):
         if len(graph):
             self.graph			= tuple(graph)
         else:
@@ -171,7 +171,7 @@ class Branch:
             self.EMF			= float(EMF)
         except:
             raise InvalidArgument('branch', mode='FLOATERROR')
-        self.name				= name
+        self.ID				= ID
 
     def getSign (self, node):
         if node in self.graph:
@@ -180,17 +180,37 @@ class Branch:
             return 0
         
 class General:
+    '''
+    Параметры:
+    circuit	- кортеж контуров. Каждый контур представляет собой
+    кортеж из входящих в него ветвей, заданных своими идентификаторами.
+    args	- ветви, представленные экземплярами класса Branch
+    '''
     type						= 'general'
-    def __init__ (self, *args):
+    def __init__ (self, circuit, *args):
         self.network			= dict(zip(range(len(args))), args)
         var					= ()
         for x in args:
             var				+= x.graph
         nodes				= ()
         for x in var:
-            if not(x in nodes):
-                nodes		+= (x,)
+            if  x not in nodes:
+                nodes			+= (x,)
         self.nodes			= nodes
+        var				= len(self.network) - len(self.nodes)
+        if len(circuit) < var:
+            raise InvalidArgument('Required ' + str(len(circuit)) + ' circuit, given ' + str(var))
+        self.circuit			= circuit[:(var-1)]
+        
+    def solve (self):
+        matrix				= []
+        column				= []
+        if len(self.network) == len(self.nodes) + len(self.circuit):
+            for x in self.nodes:
+                line			= []
+                for y in self.network:
+                    line.append(y.getSign(x))
+                matrix.append(line)
 ### ================================= End element.py ========================================
 ### -----------------------------------------------------------------------------------------------
 if __name__ == '__main__':

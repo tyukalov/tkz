@@ -30,7 +30,7 @@ def getcircuit (filename):
 # Валидатор тэгов
 def tag_validate (var):
     var0			= var.tag
-    if not(var0 in tags):
+    if var0 not in tags:
         result		= False
     else:
         result		= True
